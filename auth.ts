@@ -4,6 +4,8 @@ import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
+import { MongoDBAdapter } from '@auth/mongodb-adapter';
+import clientPromise from '@/app/lib/db';
 import type { User } from '@/app/lib/definitions';
 import bcrypt from 'bcrypt';
 
@@ -19,6 +21,12 @@ async function getUser(email: string): Promise<User | undefined> {
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
+  debug: true,
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     Credentials({
       async authorize(credentials) {
